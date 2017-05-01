@@ -1,0 +1,10 @@
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Release\CraftSynth.BuildingBlocks.Generated.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Release\CraftSynth.BuildingBlocks.Generated.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Release\ZetaLongPaths.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Release\ZetaLongPaths.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Release\Interop.Shell32.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\Release\CraftSynth.BuildingBlocks.Generated.csprojResolveAssemblyReference.cache
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\Release\Interop.Shell32.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\Release\CraftSynth.BuildingBlocks.Generated.csproj.ResolveComReference.cache
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\Release\CraftSynth.BuildingBlocks.Generated.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\Release\CraftSynth.BuildingBlocks.Generated.pdb

@@ -1,0 +1,9 @@
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\CraftSynth.BuildingBlocks.Generated.dll
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\CraftSynth.BuildingBlocks.Generated.pdb
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\ZetaLongPaths.dll
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\ZetaLongPaths.pdb
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\bin\Interop.Shell32.dll
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\CraftSynth_Debug_With_Full_Building_Blocks\Interop.Shell32.dll
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\CraftSynth_Debug_With_Full_Building_Blocks\CraftSynth.BuildingBlocks.Generated.csproj.ResolveComReference.cache
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\CraftSynth_Debug_With_Full_Building_Blocks\CraftSynth.BuildingBlocks.Generated.dll
+D:\Projects\CraftSynth.BuildingBlocks\SourceCode\CraftSynth.BuildingBlocks.Generated\obj\CraftSynth_Debug_With_Full_Building_Blocks\CraftSynth.BuildingBlocks.Generated.pdb

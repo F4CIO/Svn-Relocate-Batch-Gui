@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftSynth.SvnRelocateBatchGui", "CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui.csproj", "{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftSynth.BuildingBlocks.Generated", "CraftSynth.BuildingBlocks.Generated\CraftSynth.BuildingBlocks.Generated.csproj", "{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		CraftSynth_Debug_With_Full_Building_Blocks|Any CPU = CraftSynth_Debug_With_Full_Building_Blocks|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.CraftSynth_Debug_With_Full_Building_Blocks|Any CPU.ActiveCfg = Debug|Any CPU
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.CraftSynth_Debug_With_Full_Building_Blocks|Any CPU.Build.0 = Debug|Any CPU
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C62CD50B-0377-4C4C-8B57-F025C8A3C69F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.CraftSynth_Debug_With_Full_Building_Blocks|Any CPU.ActiveCfg = CraftSynth_Debug_With_Full_Building_Blocks|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.CraftSynth_Debug_With_Full_Building_Blocks|Any CPU.Build.0 = CraftSynth_Debug_With_Full_Building_Blocks|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5ED9146-E478-4204-B5AA-AF9BFA8EF153}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,13 @@
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\CraftSynth.SvnRelocateBatchGui.exe.config
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\CraftSynth.SvnRelocateBatchGui.exe
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\CraftSynth.SvnRelocateBatchGui.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\CraftSynth.BuildingBlocks.Generated.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\ZetaLongPaths.dll
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\CraftSynth.BuildingBlocks.Generated.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Release\ZetaLongPaths.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.csprojResolveAssemblyReference.cache
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.FormMain.resources
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.Properties.Resources.resources
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.csproj.GenerateResource.Cache
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.exe
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Release\CraftSynth.SvnRelocateBatchGui.pdb

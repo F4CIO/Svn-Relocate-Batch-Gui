@@ -1,0 +1,17 @@
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.SvnRelocateBatchGui.exe.config
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.SvnRelocateBatchGui.exe
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.SvnRelocateBatchGui.pdb
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.BuildingBlocks.Generated.dll
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\Interop.Shell32.dll
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\ZetaLongPaths.dll
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.BuildingBlocks.Generated.pdb
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\bin\Debug\ZetaLongPaths.pdb
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.csprojResolveAssemblyReference.cache
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.FormMain.resources
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.Properties.Resources.resources
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.csproj.GenerateResource.Cache
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.exe
+d:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.pdb
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\bin\Debug\CraftSynth.SvnRelocateBatchGui.exe.config
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.exe
+D:\Projects\CraftSynth.SvnRelocateGuiBatch\SourceCode\CraftSynth.SvnRelocateBatchGui\obj\Debug\CraftSynth.SvnRelocateBatchGui.pdb
