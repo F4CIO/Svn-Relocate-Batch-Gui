@@ -1,2 +1,2 @@
 # Svn-Relocate-Batch-Gui
-http://www.f4cio.com/svn-relocate-batch-gui
+This free utility can help you change SVN server domain in multiple projects at once. See screenshoot and details here: http://www.f4cio.com/svn-relocate-batch-gui
