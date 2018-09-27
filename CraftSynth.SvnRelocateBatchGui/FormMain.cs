@@ -34,7 +34,7 @@ namespace CraftSynth.SvnRelocateBatchGui
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			this.folderBrowserDialog.SelectedPath = "d:\\Projects";
+			//this.folderBrowserDialog.SelectedPath = "d:\\Projects1";
 			if (!Directory.Exists(this.folderBrowserDialog.SelectedPath))
 			{
 				MessageBox.Show("You must select existing folder root folder of all projects (local copies) in step 1.");
@@ -133,7 +133,7 @@ namespace CraftSynth.SvnRelocateBatchGui
 		{
 			get
 			{
-				return BuildingBlocks.UI.Web.UriHandler.GetAuthority(this.svnUrl);
+				return BuildingBlocks.UI.Web.UriHandler.GetAuthority(this.svnUrl, false);
 			}
 		}
 

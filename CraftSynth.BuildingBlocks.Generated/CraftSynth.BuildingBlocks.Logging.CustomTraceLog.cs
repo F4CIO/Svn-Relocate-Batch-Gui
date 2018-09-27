@@ -1,4 +1,5 @@
-﻿using System;
+﻿//V2
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
@@ -29,6 +30,7 @@ namespace CraftSynth.BuildingBlocks.Logging
 		private int _ident;
 		private string _oneIdent;
 		private SensitiveStringsList _sensitiveStringsList = new SensitiveStringsList();
+        private DateTime _lastChangeAsUtc = DateTime.UtcNow;
 		
 		private string CalculateIdent(int ident)
 		{
@@ -154,22 +156,17 @@ namespace CraftSynth.BuildingBlocks.Logging
 			}
 			string lineVersionSuitableForLineEnding = message;
 			string lineVersionSuitableForNewLine = timestamp + this.CalculateIdent(this._ident+(inNewLine?0:1)) + message;
-			string line = inNewLine ? timestamp + this.CalculateIdent(this._ident) + message : message;
+			string line = inNewLine ? "\r\n"+timestamp + this.CalculateIdent(this._ident) + message : message;
 
-			if (inNewLine)
-			{
-				_sb.Append("\r\n"+line);
-			}
-			else
-			{
-				_sb.Append(line);
-			}
+			this._sb.Append(line);
 
 			if (this._AddLinePostProcessingEvent != null)
 			{
 				this._AddLinePostProcessingEvent.Invoke(this, line, inNewLine, level, lineVersionSuitableForLineEnding, lineVersionSuitableForNewLine);
 			}
-		}
+
+            this._lastChangeAsUtc = DateTime.UtcNow;
+        }
 
 		public string GetVersionForNewLine;
 		
@@ -204,6 +201,14 @@ namespace CraftSynth.BuildingBlocks.Logging
 		{
 			get { return _sb.Length; }
 		}
+
+        public DateTime LastChangeAsUtc
+        {
+            get
+            {
+                return _lastChangeAsUtc;
+            }
+        }
 
 		public string[] ToLines()
 		{
@@ -272,6 +277,23 @@ namespace CraftSynth.BuildingBlocks.Logging
 				log._AssignSensitiveString(sensitiveString, replacementType, replacementString); 
 			}
 		}
+
+        public static void AddException(this CustomTraceLog log, Exception e, string additionalMessage = null)
+        {
+            if (log != null)
+            {
+                log._AddLine("============================= Exception ===========================");
+                if (additionalMessage != null)
+                {
+                    log._AddLine(additionalMessage);
+                    log._AddLine("-------------------------------------------------------------------");
+                }
+                e = BuildingBlocks.Common.Misc.GetDeepestException(e);//this is usually most interesting part
+                log._AddLine(e.Message);
+                log._AddLine(e.StackTrace);
+                log._AddLine("===================================================================");
+            }
+        }
 	}
 
 
@@ -351,7 +373,10 @@ namespace CraftSynth.BuildingBlocks.Logging
 				bool thereWereSomeNewLogsAfterStartMessage = this._log.Length != _totalLengthAfterStartMessage && this._log.ToString().Substring(_totalLengthAfterStartMessage).Contains('\n');
 				if (!this.IsInException())
 				{
-					this._log._AddLine(_finishMessage, thereWereSomeNewLogsAfterStartMessage, this._level);
+                    if (_finishMessage != null)
+                    {
+                        this._log._AddLine(_finishMessage, thereWereSomeNewLogsAfterStartMessage, this._level);
+                    }
 				}
 				else
 				{

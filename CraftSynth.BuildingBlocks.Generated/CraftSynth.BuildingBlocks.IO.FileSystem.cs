@@ -10,6 +10,7 @@ using Microsoft.VisualBasic.FileIO;
 using ZetaLongPaths;
 using CBB_CommonMisc = CraftSynth.BuildingBlocks.Common.Misc;
 using SearchOption = System.IO.SearchOption;
+using System.Runtime.InteropServices;
 
 namespace CraftSynth.BuildingBlocks.IO
 {
@@ -55,6 +56,51 @@ namespace CraftSynth.BuildingBlocks.IO
 		public static bool FileOrFolderExist(string path)
 		{
 			return File.Exists(path) || Directory.Exists(path);
+		}
+		
+		public static bool FileOrFolderExistsUsingZetaForLongPaths(string path)
+		{
+			bool r;
+						
+			ZetaLongPaths.ZlpFileInfo zfi = new ZlpFileInfo(path);
+			r = zfi.Exists;
+
+			if (r == false)
+			{
+				ZetaLongPaths.ZlpDirectoryInfo zdi = new ZlpDirectoryInfo(path);
+				r = zdi.Exists;
+			}
+
+			return r;
+		}
+
+		public static FileStream OpenReadUsingZetaLongPaths(string path)
+		{
+			FileStream r;
+
+			try
+			{
+				r = File.OpenRead(path);
+			}
+			catch (Exception e)
+			{
+				if (e.Message.Contains("The specified path, file name, or both are too long."))
+				{
+						r = new FileStream(
+							ZlpIOHelper.CreateFileHandle(
+								path,
+								ZetaLongPaths.Native.CreationDisposition.OpenAlways,
+								ZetaLongPaths.Native.FileAccess.GenericRead,
+								ZetaLongPaths.Native.FileShare.Read),
+							FileAccess.Read);
+				}
+				else
+				{
+					throw;
+				}
+			}
+
+			return r;		
 		}
 
 		public static void CreateFolderIfItDoesNotExist(string path)
@@ -102,7 +148,31 @@ namespace CraftSynth.BuildingBlocks.IO
 		    return r;
 	    }
 
-	    /// <summary>
+		public static DateTime? GetFileLastWriteTime(string filePath, bool surpressAllErrors = true)
+		{
+			DateTime? r = null;
+
+			try
+			{
+				FileInfo fi = new FileInfo(filePath);
+				r = fi.LastWriteTime;
+			}
+			catch (Exception e)
+			{
+				if (surpressAllErrors)
+				{
+					r = null;
+				}
+				else
+				{
+					throw new Exception("Can not get file last write time for file '" + (filePath ?? "null") + "'. See inner exception.", e);
+				}
+			}
+
+			return r;
+		}
+
+		/// <summary>
 		/// Gets list of strings where each is full path to file including filename (for example: <example>c:\dir\filename.ext</example>.
 		/// </summary>
 		/// <param name="folderPath">Full path of folder that should be searched. For example: <example>c:\dir</example>.</param>
@@ -363,14 +433,31 @@ namespace CraftSynth.BuildingBlocks.IO
 			return parentFolderPath;
 		}
 
-		/// <summary>
-		/// Writes provided sequence of bytes to file specified by filepath.
-		/// </summary>
-		/// <param name="filePath">Full path to file. Example: <example>c:\subdir1\file1.bin</example> </param>
-		/// <param name="data"></param>
-		/// <exception cref="ArgumentException">Thrown when parameter <paramref>filePath</paramref> is null or empty.</exception>
-		/// <exception cref="ArgumentException">Thrown when parameter <paramref>data</paramref> is null.</exception>
-		public static void WriteBytesToFile(string filePath, byte[] data)
+        public static string GetLastCreatedFile(List<string> filePaths)
+        {
+            string r = null;
+            DateTime lastCreationTime = DateTime.MinValue;
+            foreach (string filePath in filePaths)
+            {
+                DateTime creationTime = new FileInfo(filePath).CreationTimeUtc;
+                if (creationTime.Ticks > lastCreationTime.Ticks)
+                {
+                    lastCreationTime = creationTime;
+                    r = filePath;
+                }
+            }
+
+            return r;
+        }
+
+        /// <summary>
+        /// Writes provided sequence of bytes to file specified by filepath.
+        /// </summary>
+        /// <param name="filePath">Full path to file. Example: <example>c:\subdir1\file1.bin</example> </param>
+        /// <param name="data"></param>
+        /// <exception cref="ArgumentException">Thrown when parameter <paramref>filePath</paramref> is null or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown when parameter <paramref>data</paramref> is null.</exception>
+        public static void WriteBytesToFile(string filePath, byte[] data)
 		{
 			if (String.IsNullOrEmpty(filePath)) throw new ArgumentException("Value must be non-empty string.", "filePath");
 			if (data == null) throw new ArgumentNullException("data");
@@ -446,6 +533,300 @@ namespace CraftSynth.BuildingBlocks.IO
 				{//delete folder
 					Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(path, uIOption, useRecycleBin ? RecycleOption.SendToRecycleBin : RecycleOption.DeletePermanently, UICancelOption.ThrowException);
 				}
+		}
+
+		public static void DeleteFileOrFolderUsingZetaForLongPaths(string path, bool useRecycleBin, bool preferVBShellMethod, bool displayOnlyErrorDialogs)
+		{
+			UIOption uIOption = (displayOnlyErrorDialogs) ? UIOption.OnlyErrorDialogs : UIOption.AllDialogs;
+
+			if (useRecycleBin)
+			{
+				preferVBShellMethod = true;
+			}
+
+			if (preferVBShellMethod && File.Exists(path))
+			{//delete file
+				Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path, uIOption, useRecycleBin ? RecycleOption.SendToRecycleBin : RecycleOption.DeletePermanently, UICancelOption.ThrowException);
+			}
+			else
+			if(preferVBShellMethod && Directory.Exists(path))
+			{//delete folder
+				Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(path, uIOption, useRecycleBin ? RecycleOption.SendToRecycleBin : RecycleOption.DeletePermanently, UICancelOption.ThrowException);
+			}
+			else
+			{				
+				ZetaLongPaths.ZlpFileInfo zfi = new ZlpFileInfo(path);
+				if (zfi.Exists)
+				{
+					if (useRecycleBin)
+					{
+						throw new Exception("Folder/file has too long path. Try deleting it without using Recycle Bin. Path: " + path);
+					}
+					else
+					{
+						zfi.Delete();
+					}
+				}
+				else
+				{
+					ZetaLongPaths.ZlpDirectoryInfo zdi = new ZlpDirectoryInfo(path);
+					if (zdi.Exists)
+					{
+						if (useRecycleBin)
+						{
+							throw new Exception("Folder/file has too long path. Try deleting it without using Recycle Bin. Path: " + path);
+						}
+						else
+						{
+							zdi.Delete(true);
+						}
+					}
+				}				
+			}
+		}
+
+		/// <summary>
+		/// Source: http://stackoverflow.com/questions/3282418/send-a-file-to-the-recycle-bin
+		/// </summary>
+		private class FileToRecycleBinMover
+		{
+			/// <summary>
+			/// Possible flags for the SHFileOperation method.
+			/// </summary>
+			[Flags]
+			internal enum FileOperationFlags : ushort
+			{
+				/// <summary>
+				/// Do not show a dialog during the process
+				/// </summary>
+				FOF_SILENT = 0x0004,
+				/// <summary>
+				/// Do not ask the user to confirm selection
+				/// </summary>
+				FOF_NOCONFIRMATION = 0x0010,
+				/// <summary>
+				/// Delete the file to the recycle bin.  (Required flag to send a file to the bin
+				/// </summary>
+				FOF_ALLOWUNDO = 0x0040,
+				/// <summary>
+				/// Do not show the names of the files or folders that are being recycled.
+				/// </summary>
+				FOF_SIMPLEPROGRESS = 0x0100,
+				/// <summary>
+				/// Surpress errors, if any occur during the process.
+				/// </summary>
+				FOF_NOERRORUI = 0x0400,
+				/// <summary>
+				/// Warn if files are too big to fit in the recycle bin and will need
+				/// to be deleted completely.
+				/// </summary>
+				FOF_WANTNUKEWARNING = 0x4000,
+			}
+
+			/// <summary>
+			/// File Operation Function Type for SHFileOperation
+			/// </summary>
+			internal enum FileOperationType : uint
+			{
+				/// <summary>
+				/// Move the objects
+				/// </summary>
+				FO_MOVE = 0x0001,
+				/// <summary>
+				/// Copy the objects
+				/// </summary>
+				FO_COPY = 0x0002,
+				/// <summary>
+				/// Delete (or recycle) the objects
+				/// </summary>
+				FO_DELETE = 0x0003,
+				/// <summary>
+				/// Rename the object(s)
+				/// </summary>
+				FO_RENAME = 0x0004,
+			}
+
+
+
+			/// <summary>
+			/// SHFILEOPSTRUCT for SHFileOperation from COM
+			/// </summary>
+			[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+			private struct SHFILEOPSTRUCT
+			{
+
+				public IntPtr hwnd;
+				[MarshalAs(UnmanagedType.U4)]
+				public FileOperationType wFunc;
+				public string pFrom;
+				public string pTo;
+				public FileOperationFlags fFlags;
+				[MarshalAs(UnmanagedType.Bool)]
+				public bool fAnyOperationsAborted;
+				public IntPtr hNameMappings;
+				public string lpszProgressTitle;
+			}
+
+			[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+			private static extern int SHFileOperation(ref SHFILEOPSTRUCT FileOp);
+
+			private class ErrorTableItem
+			{
+				public string ID;
+				public int ErrorCode;
+				public string Message;
+			}
+
+			/// <summary>
+			/// Source: https://msdn.microsoft.com/en-us/library/windows/desktop/bb762164(v=vs.85).aspx
+			/// </summary>
+			private static List<ErrorTableItem> ErrorTable
+			{
+				get
+				{
+					List<ErrorTableItem> items = new List<ErrorTableItem>();
+					items.Add(new ErrorTableItem() { ID = "DE_SAMEFILE		         ", ErrorCode = 0x71, Message = "The source and destination files are the same file.																										   " });
+					items.Add(new ErrorTableItem() { ID = "DE_MANYSRC1DEST	         ", ErrorCode = 0x72, Message = "Multiple file paths were specified in the source buffer, but only one destination file path.																   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DIFFDIR			     ", ErrorCode = 0x73, Message = "Rename operation was specified but the destination path is a different directory.Use the move operation instead.											   " });
+					items.Add(new ErrorTableItem() { ID = "DE_ROOTDIR			     ", ErrorCode = 0x74, Message = "The source is a root directory, which cannot be moved or renamed.																							   " });
+					items.Add(new ErrorTableItem() { ID = "DE_OPCANCELLED		     ", ErrorCode = 0x75, Message = "The operation was canceled by the user, or silently canceled if the appropriate flags were supplied to SHFileOperation.									   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DESTSUBTREE		     ", ErrorCode = 0x76, Message = "The destination is a subtree of the source.																												   " });
+					items.Add(new ErrorTableItem() { ID = "DE_ACCESSDENIEDSRC        ", ErrorCode = 0x78, Message = "Security settings denied access to the source.																												   " });
+					items.Add(new ErrorTableItem() { ID = "DE_PATHTOODEEP		     ", ErrorCode = 0x79, Message = "The source or destination path exceeded or would exceed MAX_PATH.																							   " });
+					items.Add(new ErrorTableItem() { ID = "DE_MANYDEST		         ", ErrorCode = 0x7A, Message = "The operation involved multiple destination paths, which can fail in the case of a move operation.															   " });
+					items.Add(new ErrorTableItem() { ID = "DE_INVALIDFILES	         ", ErrorCode = 0x7C, Message = "The path in the source or destination or both was invalid.																									   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DESTSAMETREE	         ", ErrorCode = 0x7D, Message = "The source and destination have the same parent folder.																									   " });
+					items.Add(new ErrorTableItem() { ID = "DE_FLDDESTISFILE          ", ErrorCode = 0x7E, Message = "The destination path is an existing file.																													   " });
+					items.Add(new ErrorTableItem() { ID = "DE_FILEDESTISFLD          ", ErrorCode = 0x80, Message = "The destination path is an existing folder.																												   " });
+					items.Add(new ErrorTableItem() { ID = "DE_FILENAMETOOLONG        ", ErrorCode = 0x81, Message = "The name of the file exceeds MAX_PATH.																														   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DEST_IS_CDROM          ", ErrorCode = 0x82, Message = "The destination is a read-only CD-ROM, possibly unformatted.																								   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DEST_IS_DVD		     ", ErrorCode = 0x83, Message = "The destination is a read-only DVD, possibly unformatted.																									   " });
+					items.Add(new ErrorTableItem() { ID = "DE_DEST_IS_CDRECORD       ", ErrorCode = 0x84, Message = "The destination is a writable CD-ROM, possibly unformatted.																								   " });
+					items.Add(new ErrorTableItem() { ID = "DE_FILE_TOO_LARGE         ", ErrorCode = 0x85, Message = "The file involved in the operation is too large for the destination media or file system.																	   " });
+					items.Add(new ErrorTableItem() { ID = "DE_SRC_IS_CDROM	         ", ErrorCode = 0x86, Message = "The source is a read-only CD-ROM, possibly unformatted.																									   " });
+					items.Add(new ErrorTableItem() { ID = "DE_SRC_IS_DVD		     ", ErrorCode = 0x87, Message = "The source is a read-only DVD, possibly unformatted.																										   " });
+					items.Add(new ErrorTableItem() { ID = "DE_SRC_IS_CDRECORD        ", ErrorCode = 0x88, Message = "The source is a writable CD-ROM, possibly unformatted.																										   " });
+					items.Add(new ErrorTableItem() { ID = "DE_ERROR_MAX		         ", ErrorCode = 0xB7, Message = "MAX_PATH was exceeded during the operation.																												   " });
+					items.Add(new ErrorTableItem() { ID = "UNKNOWN			         ", ErrorCode = 0x402, Message = "An unknown error occurred. This is typically due to an invalid path in the source or destination. This error does not occur on Windows Vista and later.	   " });
+					items.Add(new ErrorTableItem() { ID = "ERRORONDEST		         ", ErrorCode = 0x10000, Message = "An unspecified error occurred on the destination.																										   " });
+					items.Add(new ErrorTableItem() { ID = "DE_ROOTDIR_OR_ERRORONDEST ", ErrorCode = 0x10074, Message = " Destination is a root directory and cannot be renamed.																									   " });
+					return items;
+				}
+			}
+
+			private static void ThrowExceptionIfError(int r, string path)
+			{
+				if (r != 0)
+				{
+					ErrorTableItem eti = ErrorTable.FirstOrDefault(item => item.ErrorCode == r);
+					if (eti == null)
+					{
+						throw new Exception("Unknown error occured while sending to recycle bin this file: " + path ?? "null");
+					}
+					else
+					{
+						throw new Exception("Error occured while sending to recycle bin this file: " + (path ?? "null") + " Details:" + eti.Message);
+					}
+				}
+			}
+
+			/// <summary>
+			/// Send file to recycle bin
+			/// </summary>
+			/// <param name="path">Location of directory or file to recycle</param>
+			/// <param name="flags">FileOperationFlags to add in addition to FOF_ALLOWUNDO</param>
+			public static void Send(string path, FileOperationFlags flags)
+			{			
+				var fs = new SHFILEOPSTRUCT
+				{
+					wFunc = FileOperationType.FO_DELETE,
+					pFrom = path + '\0' + '\0',
+					fFlags = FileOperationFlags.FOF_ALLOWUNDO | flags
+				};
+				int r =	SHFileOperation(ref fs);//slow
+				ThrowExceptionIfError(r,path);
+			}
+
+			/// <summary>
+			/// Send file to recycle bin.  Display dialog, display warning if files are too big to fit (FOF_WANTNUKEWARNING)
+			/// </summary>
+			/// <param name="path">Location of directory or file to recycle</param>
+			public static void Send(string path)
+			{
+				Send(path, FileOperationFlags.FOF_NOCONFIRMATION | FileOperationFlags.FOF_WANTNUKEWARNING);
+			}
+
+			/// <summary>
+			/// Send file silently to recycle bin.  Surpress dialog, surpress errors, delete if too large.
+			/// </summary>
+			/// <param name="path">Location of directory or file to recycle</param>
+			public static void MoveToRecycleBin(string path)
+			{
+				Send(path, FileOperationFlags.FOF_NOCONFIRMATION | FileOperationFlags.FOF_NOERRORUI | FileOperationFlags.FOF_SILENT);
+			}
+
+			private static void deleteFile(string path, FileOperationFlags flags)
+			{
+				var fs = new SHFILEOPSTRUCT
+				{
+					wFunc = FileOperationType.FO_DELETE,
+					pFrom = path + '\0' + '\0',
+					fFlags = flags
+				};
+				int r = SHFileOperation(ref fs);
+				ThrowExceptionIfError(r, path);
+			}
+
+			public static void DeleteCompletelySilent(string path)
+			{
+				deleteFile(path, FileOperationFlags.FOF_NOCONFIRMATION | FileOperationFlags.FOF_NOERRORUI | FileOperationFlags.FOF_SILENT);
+			}
+		}
+
+		public static void DeleteFile(string path, bool useRecycleBin, bool deletePermanentlyIfPathToLong)
+		{
+			ZetaLongPaths.ZlpFileInfo zfi = new ZlpFileInfo(path);
+			if (!zfi.Exists)
+			{
+				throw new FileNotFoundException("File not found. File path:" + path ?? "null");
+			} 
+			else
+			{
+				if (useRecycleBin)
+				{
+					try
+					{
+						FileToRecycleBinMover.MoveToRecycleBin(path);
+					}
+					catch (Exception e)
+					{
+						if (e.Message.Contains("The specified path, file name, or both are too long.")
+						|| e.Message.Contains("The source or destination path exceeded or would exceed MAX_PATH")
+						|| e.Message.Contains("The path in the source or destination or both was invalid")
+						|| e.Message.Contains("The name of the file exceeds MAX_PATH")
+						|| e.Message.Contains("MAX_PATH was exceeded during the operation")
+						)
+						{
+							if (deletePermanentlyIfPathToLong)
+							{
+								zfi.Delete();
+							}
+							else
+							{
+								throw new Exception("File path too long for Recycle Bin. Try deleting it without using Recycle Bin. Path: " + path);
+							}
+						}
+						else if (e.Message.Contains("The file involved in the operation is too large for the destination media or file system"))
+						{
+							throw new Exception("File too big for Recycle Bin. Try deleting it without using Recycle Bin. Path: " + path);
+						}
+					}
+				}
+				else
+				{
+					zfi.Delete();
+				}
+			}
 		}
 
 		/// <summary>
@@ -729,8 +1110,8 @@ namespace CraftSynth.BuildingBlocks.IO
 			}
 
 			// Open the two files.
-			fs1 = new FileStream(file1, FileMode.Open);
-			fs2 = new FileStream(file2, FileMode.Open);
+			fs1 = new FileStream(file1, FileMode.Open, FileAccess.Read, FileShare.Read );
+			fs2 = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.Read );
 
 			// Check the file sizes. If they are not the same, the files 
 			// are not the same.
@@ -812,6 +1193,7 @@ namespace CraftSynth.BuildingBlocks.IO
 
 
 
+
 		public static string GetTargetPathFromLnkManualy(string filePath)
 		{
 			string fileContents = File.ReadAllText(filePath, Encoding.Unicode);
@@ -834,6 +1216,14 @@ namespace CraftSynth.BuildingBlocks.IO
 				target = fileContents.Substring(targetStartIndex).Trim();
 				target = target.Replace("\0", String.Empty);
 			}
+			return target;
+		}
+		
+		public static string GetUrlFromInternetShortcut(string filePath)
+		{
+			var lines = File.ReadAllLines(filePath);
+			string target = lines.First(line => line.ToUpper().StartsWith("URL=")).Substring(4);
+			
 			return target;
 		}
 

@@ -86,7 +86,33 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 		}
 
-		public static string version
+        public static string ApplicationPhysicalExeFilePath
+        {
+
+            get
+            {
+                string r;
+                switch (GetApplicationType())
+                {
+                    case ApplicationType.Console:
+                        r = CBB_UIConsole.ApplicationPhysicalExeFilePath;
+                        break;
+                    case ApplicationType.Forms:
+                        r = CBB_UIWindowsFormsMisc.ApplicationPhysicalExeFilePath;
+                        break;
+                    case ApplicationType.AspNet:
+                        throw new Exception("AspNet has no main exe file.");
+                        break;
+                    default:
+                        throw new Exception(
+                            "AddTimestampedExceptionInfoToApplicationWideLog: Application type not supported. Application type:" +
+                            GetApplicationType());
+                }
+                return r;
+            }
+        }
+
+        public static string version
 		{
 			get
 			{
@@ -122,7 +148,81 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 		}
 
-		public static KeyValuePair<long,long> GetConsumedMemoryAndConsumedMemoryOfManagedPart()
+        /// <summary>
+        /// Usage: 
+        /// 1. In AssemblyInfo put add star so you have: [assembly: AssemblyVersion("1.0.*")] 
+        /// 2. In your code use like this: var t = AssemblyBuildMoment(typeof(Program));
+        /// Source: https://stackoverflow.com/questions/1600962/displaying-the-build-date
+        /// </summary>
+        public static DateTime? GetAssemblyBuildMomentAsDevelopersLocalDateTime(Type anyTypeDefinedInAssembly, bool blockAllErrors = true, DateTime? errorCaseResult = null)
+        {
+            try
+            {
+                var version = anyTypeDefinedInAssembly.Assembly.GetName().Version;
+                DateTime buildMoment = new DateTime(2000, 1, 1).Add(new TimeSpan(
+                    TimeSpan.TicksPerDay * version.Build + // days since 1 January 2000
+                    TimeSpan.TicksPerSecond * 2 * version.Revision));// seconds since midnight, (multiply by 2 to get original)
+                return buildMoment;
+            }
+            catch (Exception e)
+            {
+                if (!blockAllErrors)
+                {
+                    throw;
+                }
+                else
+                {
+                    return errorCaseResult;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Usage: 
+        /// 1. In AssemblyInfo put add star so you have: [assembly: AssemblyVersion("1.0.*")] 
+        /// 2. In your code use like this: var t = AssemblyBuildMoment(typeof(Program));
+        /// Source: https://stackoverflow.com/questions/1600962/displaying-the-build-date
+        /// </summary>
+        public static Version GetAssemblyVersion(Type anyTypeDefinedInAssembly, bool blockAllErrors = true, Version errorCaseResult = null)
+        {
+            try
+            {
+                var r = anyTypeDefinedInAssembly.Assembly.GetName().Version;
+                return r;
+            }
+            catch (Exception e)
+            {
+                if (!blockAllErrors)
+                {
+                    throw;
+                }
+                else
+                {
+                    return errorCaseResult;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Usage: 
+        /// 1. In AssemblyInfo put add star so you have: [assembly: AssemblyVersion("1.0.*")] 
+        /// 2. In your code use like this: var t = AssemblyBuildMoment(typeof(Program));
+        /// Source: https://stackoverflow.com/questions/1600962/displaying-the-build-date
+        /// </summary>
+        public static string GetAssemblyVersionAsString(Type anyTypeDefinedInAssembly, bool blockAllErrors = true, string errorCaseResult = null)
+        {
+            var v = GetAssemblyVersion(anyTypeDefinedInAssembly, blockAllErrors, null);
+            if(v==null)
+            {
+                return errorCaseResult;
+            }
+            else
+            {
+                return v.ToString();
+            }
+        }
+
+        public static KeyValuePair<long,long> GetConsumedMemoryAndConsumedMemoryOfManagedPart()
 		{
 			KeyValuePair<long,long> r = new KeyValuePair<long, long>(0,0);
 
@@ -371,6 +471,19 @@ namespace CraftSynth.BuildingBlocks.Common
 			Thread t = new Thread(() => { Console.Beep(frequency, durationInMiliseconds); });
 			t.Start();
 		}
+
+        public static void SleepWhileDoingEvents(int milliseconds, int millisecondsToSleepBetweenEvents = 0)
+        {
+            DateTime finishTime = DateTime.Now.AddMilliseconds(milliseconds);
+            while(DateTime.Now.Ticks<finishTime.Ticks)
+            {
+                if (millisecondsToSleepBetweenEvents > 0)
+                {
+                    Thread.Sleep(millisecondsToSleepBetweenEvents);
+                }
+                Application.DoEvents();               
+            }
+        }
 
 		public static List<Process> GetProcessesByNamePart(string namePart)
 		{

@@ -65,28 +65,45 @@ namespace CraftSynth.BuildingBlocks.UI.Web
 		/// 'https://www.mywebsite.com'
 		/// </param>
 		/// <returns>Requested part. Example: www.mywebsite.com:8080. <value>null</value> if uri is invalid or part was not found.</returns>
-		public static string GetAuthority(string uri)
-		{
-			string authority = null;
-			Regex regex = new Regex(Pattern_Uri);
-			Match match = regex.Match(uri);
-			if (match.Success)
-			{
-				authority = match.Groups["a0"].Value;
-			}
-			return authority;
-		}
+		public static string GetAuthority(string uri, bool removeSubdomain)
+        {
+            string authority = null;
+            Regex regex = new Regex(Pattern_Uri);
+            Match match = regex.Match(uri);
+            if (match.Success)
+            {
+                authority = match.Groups["a0"].Value;
+            }
 
-		/// <summary>
-		/// Gets host part. Examples: '192.168.0.1', 'www.mywebsite.com'
-		/// </summary>
-		/// <param name="uri">
-		/// Uri from which part should be extracted where protocol part must be included. Examples: 
-		/// 'http://192.168.0.1:8080/mywebapp/mydir/mypage.htm?mykey1=myvalue1(and sign)mykey2=myvalue2#myanchor',
-		/// 'https://www.mywebsite.com'.
-		/// </param>
-		/// <returns>Requested part. Examples: '192.168.0.1', 'www.mywebsite.com'. <value>null</value> if uri is invalid or part was not found.</returns>
-		public static string GetHost(string uri)
+            if (removeSubdomain)
+            {
+                authority = RemoveSubdomain(authority, authority);
+            }
+
+            return authority;
+        }
+
+        public static string RemoveSubdomain(string authority, string resultIfAuthorityIsNullOrEmptyOrSubdomainNotFound)
+        {
+            if (authority != null && authority.Length > 0 && authority.IndexOf('.') > -1)
+            {
+                var parts = authority.Split('.');
+                authority = parts[parts.Length - 2] + "." + parts[parts.Length - 1];
+            }
+
+            return authority;
+        }
+
+        /// <summary>
+        /// Gets host part. Examples: '192.168.0.1', 'www.mywebsite.com'
+        /// </summary>
+        /// <param name="uri">
+        /// Uri from which part should be extracted where protocol part must be included. Examples: 
+        /// 'http://192.168.0.1:8080/mywebapp/mydir/mypage.htm?mykey1=myvalue1(and sign)mykey2=myvalue2#myanchor',
+        /// 'https://www.mywebsite.com'.
+        /// </param>
+        /// <returns>Requested part. Examples: '192.168.0.1', 'www.mywebsite.com'. <value>null</value> if uri is invalid or part was not found.</returns>
+        public static string GetHost(string uri)
 		{
 			string host = null;
 			Regex regex = new Regex(Pattern_Uri);
@@ -214,23 +231,26 @@ namespace CraftSynth.BuildingBlocks.UI.Web
 		/// </summary>
 		/// <returns></returns>
 		public static string GetAbsoluteWebsiteRoot()
-		{
-			if (HttpContext.Current.Request.ApplicationPath.Length <= 1)
-			{//not path so value is '/'
-				return HttpContext.Current.Request.Url.AbsoluteUri.Replace(
-					HttpContext.Current.Request.Url.PathAndQuery,
-					string.Empty);
-			}
-			else
-			{//path exists
-				return HttpContext.Current.Request.Url.AbsoluteUri.Replace(
-					HttpContext.Current.Request.Url.PathAndQuery.Replace(HttpContext.Current.Request.ApplicationPath, string.Empty),
-					string.Empty);
-			}
-		}
+        {
+            return GetAbsoluteWebsiteRoot(HttpContext.Current);
+        }
 
-
-	}
+        public static string GetAbsoluteWebsiteRoot(HttpContext httpContext)
+        {
+            if (httpContext.Request.ApplicationPath.Length <= 1)
+            {//not path so value is '/'
+                return httpContext.Request.Url.AbsoluteUri.Replace(
+                    httpContext.Request.Url.PathAndQuery,
+                    string.Empty);
+            }
+            else
+            {//path exists
+                return httpContext.Request.Url.AbsoluteUri.Replace(
+                    httpContext.Request.Url.PathAndQuery.Replace(httpContext.Request.ApplicationPath, string.Empty),
+                    string.Empty);
+            }
+        }
+    }
 
 	//Other regular expression pattern examples:
 	//     Match only alphanumeric characters along with the characters -, +, ., and any whitespace, with the stipulation that there is at least one of these characters and no more than 10 of these characters:

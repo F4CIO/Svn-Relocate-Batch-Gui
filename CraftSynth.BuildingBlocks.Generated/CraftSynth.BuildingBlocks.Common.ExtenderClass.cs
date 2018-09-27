@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -116,10 +117,73 @@ namespace CraftSynth.BuildingBlocks.Common
 					typeof(DescriptionAttribute), false);
 			return (attributes.Length > 0) ? attributes[0].Description : value.ToString();
 		}
-		#endregion
 
-		#region String
-		public static string ToNonNullString<T>(this T? nullableObject) where T : struct
+        public static T? GetEnumFromString<T>(string enumConstantName, T? errorCaseResult = null, bool ignoreCase = true) where T : struct, IConvertible
+        {
+            T? r = null;
+
+            if (!typeof(T).IsEnum)
+            {
+                r = errorCaseResult;
+            }else
+            if(string.IsNullOrEmpty(enumConstantName))
+            {
+                r = errorCaseResult;
+            }
+            else
+            {
+                var enumNames = Enum.GetNames(typeof(T)).ToList();
+                string matchedConstantName = enumNames.FirstOrDefault(n=>string.Compare(n,enumConstantName, ignoreCase?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)==0);
+                if(matchedConstantName==null)
+                {
+                    r = errorCaseResult;
+                }
+                else
+                {
+                    r = (T)Enum.Parse(typeof(T), matchedConstantName);
+                }                
+            }
+            
+            return r;
+        }
+
+        /// <summary>
+        /// Usage: 
+        /// CraftSynth.BuildingBlocks.Common.ExtenderClass.GetEnumAsList<MyEnum>()
+        /// </summary>
+        public static List<T> GetEnumAsList<T>() 
+        {
+            List<T> r = new List<T>();
+
+            foreach (string enumItemAsString in Enum.GetNames(typeof(T)))
+            {
+                T enumItem = (T)Enum.Parse(typeof(T), enumItemAsString);
+                r.Add(enumItem);
+            }
+
+            return r;
+        }
+
+        /// <summary>
+        /// Usage: 
+        /// CraftSynth.BuildingBlocks.Common.ExtenderClass.GetEnumAsListOfInt<MyEnum>()
+        /// </summary>
+        public static List<int> GetEnumAsListOfInt<T>()
+        {
+            List<int> r = new List<int>();
+
+            foreach (string enumItemAsString in Enum.GetNames(typeof(T)))
+            {
+                int enumItem = (int)Enum.Parse(typeof(T), enumItemAsString);
+                r.Add(enumItem);
+            }
+
+            return r;
+        }
+        #endregion
+
+        #region String
+        public static string ToNonNullString<T>(this T? nullableObject) where T : struct
 		{
 			return ToNonNullString<T>(nullableObject, string.Empty);
 		}
@@ -204,6 +268,85 @@ namespace CraftSynth.BuildingBlocks.Common
 			return nullableObject.ToNonNullString().Trim().Length>0;
 		}
 
+		public static bool IsEqualTo(this string s1, string s2, bool caseSensitive, bool bothNullCaseResult = true, bool onlyOneIsNullCaseResult = false)
+		{
+			if (s1 == null && s2 == null)
+			{
+				return bothNullCaseResult;
+			}
+			else if (s1 == null && s2 != null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else if (s1 != null && s2 == null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else
+			{
+				if (!caseSensitive)
+				{
+					return string.Compare(s1, s2, StringComparison.OrdinalIgnoreCase) == 0;
+				}
+				else
+				{
+					return string.Compare(s1, s2, StringComparison.Ordinal) == 0;
+				}
+			}
+		}
+
+		public static bool IsEqualToWhileDisregardingCasing(this string s1, string s2, bool bothNullCaseResult = true, bool onlyOneIsNullCaseResult = false)
+		{
+			if (s1 == null && s2 == null)
+			{
+				return bothNullCaseResult;
+			}
+			else if (s1 == null && s2 != null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else if (s1 != null && s2 == null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else
+			{
+				return string.Compare(s1, s2, StringComparison.OrdinalIgnoreCase) == 0;
+			}
+		}
+
+		public static bool IsNOTEqualToWhileDisregardingCasing(this string s1, string s2, bool bothNullCaseResult = false, bool onlyOneIsNullCaseResult = true)
+		{
+			if (s1 == null && s2 == null)
+			{
+				return bothNullCaseResult;
+			}
+			else if (s1 == null && s2 != null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else if (s1 != null && s2 == null)
+			{
+				return onlyOneIsNullCaseResult;
+			}
+			else
+			{
+				return string.Compare(s1, s2, StringComparison.OrdinalIgnoreCase) != 0;
+			}
+		}
+
+		public static Nullable<T> ToNullable<T>(this string exXmlValue) where T : struct, IConvertible
+		{
+			if (string.IsNullOrEmpty(exXmlValue))
+			{
+				return null;
+			}
+			else
+			{
+				return (T)Convert.ChangeType(exXmlValue, typeof(T));
+			}
+		}
+
 		public static string EnclosedWithPercentSign(this string nullableObject)
 		{
 			string result = nullableObject;
@@ -229,7 +372,7 @@ namespace CraftSynth.BuildingBlocks.Common
 			string result = nullableObject;
 			if (nullableObject.IsNOTNullOrWhiteSpace())
 			{
-				result += result + stringToAppend;
+				result = result + stringToAppend;
 			}
 			return result;
 		}
@@ -335,6 +478,24 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 			return sb1.ToString();
 		}
+
+		/// <summary>
+		/// All chars found in Path.GetInvalidFileNameChars() or Path.GetInvalidPathChars() are replaced.
+		/// </summary>
+		/// <param name="s"></param>
+		/// <param name="r"></param>
+		/// <returns></returns>
+		public static string ReplaceInvalidFileSystemCharacters(this string s, string r)
+		{
+			var invalid = Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars());
+
+			foreach (char c in invalid)
+			{
+				s = s.Replace(c.ToString(), r);
+			}
+
+			return s;
+		}	
 
 		public static string RemoveRepeatedWords(this string s)
 		{
@@ -499,15 +660,36 @@ namespace CraftSynth.BuildingBlocks.Common
 			return r;
 		}
 
-		public static string GetSubstringBefore(this string s, string endMarker)
+		public static string GetSubstringBefore(this string s, string endMarker, string nullCaseResult = null, string zeroLengthCaseResult = "", string endMarkerNotFoundCaseResult = null, bool throwExceptionIfEndMarkerIsNullOrZeroLength = true, string endMarkerIsNullOrZeroLengthCaseResult = null)
 		{
 			string r = null;
 
-			if (s != null && !string.IsNullOrEmpty(endMarker))
-			{
+            if(s==null)
+            {
+                r = nullCaseResult;
+            }
+            else if(s.Length==0)
+            {
+                r = zeroLengthCaseResult;
+            }
+            else if(endMarker==null || endMarker.Length==0)
+            {
+                if(throwExceptionIfEndMarkerIsNullOrZeroLength)
+                {
+                    throw new Exception("endMarker is null");
+                }
+                else
+                {
+                    r = endMarkerIsNullOrZeroLengthCaseResult;
+                }
+            }else {
 				int endMarkerIndex = s.IndexOf(endMarker);
 
-				if (endMarkerIndex == 0)
+                if(endMarkerIndex<0)
+                {
+                    r = endMarkerNotFoundCaseResult;
+                }
+                else if (endMarkerIndex == 0)
 				{
 					r = string.Empty;
 				}
@@ -559,26 +741,26 @@ namespace CraftSynth.BuildingBlocks.Common
 
 			return r;
 		}
-		public static string GetSubstring(this string s, string startMarker, string endMarker, bool includeMarkersInResult = false, int? searchFromIndex = null)
+		public static string GetSubstring(this string s, string startMarker, string endMarker, bool includeMarkersInResult = false, int? searchFromIndex = null, bool caseSensitive = true, string notFoundCaseResult = null)
 		{
 			int? notUsedA;
 			int? notUsedB;
-			string r = GetSubstring(s, startMarker, endMarker, includeMarkersInResult,out notUsedA, out notUsedB, searchFromIndex);
+			string r = GetSubstring(s, startMarker, endMarker, includeMarkersInResult,out notUsedA, out notUsedB, searchFromIndex, caseSensitive);
 			return r;
 		}
-		public static string GetSubstring(this string s, string startMarker, string endMarker, bool includeMarkersInResult, out int? startIndex, out int? endIndex, int? searchFromIndex)
+		public static string GetSubstring(this string s, string startMarker, string endMarker, bool includeMarkersInResult, out int? startIndex, out int? endIndex, int? searchFromIndex, bool caseSensitive = true, string notFoundCaseResult = null)
 		{
-			string r = null;
+			string r = notFoundCaseResult;
 			startIndex = null;
 			endIndex = null;
 
 			if (s != null && !string.IsNullOrEmpty(startMarker) && !string.IsNullOrEmpty(endMarker))
 			{
-				int startMarkerIndex = s.IndexOf(startMarker, searchFromIndex??0);
+				int startMarkerIndex = s.IndexOf(startMarker, searchFromIndex??0, caseSensitive?StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 				int endMarkerIndex = -1;
 				if (startMarkerIndex > -1 && startMarkerIndex + startMarker.Length < s.Length) 
 				{ 
-					endMarkerIndex = s.IndexOf(endMarker, startMarkerIndex+startMarker.Length);
+					endMarkerIndex = s.IndexOf(endMarker, startMarkerIndex+startMarker.Length, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 				}
 
 				if (startMarkerIndex >= 0 && endMarkerIndex >= 0)
@@ -604,7 +786,7 @@ namespace CraftSynth.BuildingBlocks.Common
 
 			return r;
 		}
-		public static List<string> GetSubstrings(this string sOrig, string startMarker, string endMarker)
+		public static List<string> GetSubstrings(this string sOrig, string startMarker, string endMarker, bool caseSensitive = true)
 		{
 			var r = new List<string>();
 
@@ -618,10 +800,10 @@ namespace CraftSynth.BuildingBlocks.Common
 			{
 				if (s != null && !string.IsNullOrEmpty(startMarker) && !string.IsNullOrEmpty(endMarker))
 				{
-					int startMarkerIndex = s.IndexOf(startMarker);
+					int startMarkerIndex = s.IndexOf(startMarker, caseSensitive?StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 					if (startMarkerIndex >= 0)
 					{
-						int endMarkerIndex = s.IndexOf(endMarker, startMarkerIndex + startMarker.Length);
+						int endMarkerIndex = s.IndexOf(endMarker, startMarkerIndex + startMarker.Length, caseSensitive?StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
 						if (startMarkerIndex >= 0 && endMarkerIndex >= 0)
 						{
@@ -643,6 +825,20 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 
 			return r;
+		}
+
+		public static string ReplaceSubstrings(this string s, string startMarker, string endMarker, string replacement, bool preserveMarkers = false, bool caseSensitive = true)
+		{
+			var parts = s.GetSubstrings(startMarker, endMarker, caseSensitive);
+			if (preserveMarkers)
+			{
+				replacement = startMarker + replacement + endMarker;
+			}
+			foreach (string p in parts)
+			{
+				s = s.Replace(startMarker+p+endMarker, replacement);
+			}
+			return s;
 		}
 
 		public static string RemoveSubstring(this string s, string startMarker, string endMarker, bool removeMarkersAlso)
@@ -777,29 +973,86 @@ namespace CraftSynth.BuildingBlocks.Common
 
 		
 
-		public static List<string> RemoveDuplicates(this List<string> list)
-		{
+		public static List<string> RemoveDuplicates(this List<string> list, bool ignoreCasing = false)
+        {
+            if (list != null)
+            {
+                Dictionary<string, object> map = new Dictionary<string, object>();
+                int i = 0;
+                while (i < list.Count)
+                {
+                    string current = list[i];
+                    if (ignoreCasing)
+                    {
+                        current = current.ToLower();
+                    }
 
-			Dictionary<string, object> map = new Dictionary<string, object>();
-			int i = 0;
-			while (i < list.Count)
-			{
-				string current = list[i];
-				if (map.ContainsKey(current))
-				{
-					list.RemoveAt(i);
-				}
-				else
-				{
-					i++;
-					map.Add(current, null);
-				}
-			}
+                    if (map.ContainsKey(current))
+                    {
+                        list.RemoveAt(i);
+                    }
+                    else
+                    {
+                        i++;
+                        map.Add(current, null);
+                    }
+                }
+            }
 
-			return list;
-		}
+            return list;
+        }
 
-		public static int IndexOfNthOccurrence(this string s, string part, int N)
+        public static List<int> RemoveDuplicates(this List<int> list)
+        {
+            if (list != null)
+            {
+                Dictionary<int, object> map = new Dictionary<int, object>();
+                int i = 0;
+                while (i < list.Count)
+                {
+                    int current = list[i];
+
+                    if (map.ContainsKey(current))
+                    {
+                        list.RemoveAt(i);
+                    }
+                    else
+                    {
+                        i++;
+                        map.Add(current, null);
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public static List<int?> RemoveDuplicates(this List<int?> list)
+        {
+            if (list != null)
+            {
+                Dictionary<int?, object> map = new Dictionary<int?, object>();
+                int i = 0;
+                while (i < list.Count)
+                {
+                    int? current = list[i];
+
+                    if (map.ContainsKey(current))
+                    {
+                        list.RemoveAt(i);
+                    }
+                    else
+                    {
+                        i++;
+                        map.Add(current, null);
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public static int IndexOfNthOccurrence(this string s, string part, int N)
 		{
 			var offset = -1;
 			for (int i = 1; i <=N ; i++)
@@ -846,7 +1099,7 @@ namespace CraftSynth.BuildingBlocks.Common
 				}
 				else
 				{
-					if (offset + 1 < part.Length)
+					if (offset + 1 < s.Length)
 					{
 						offset = s.IndexOf(part, offset + 1);
 					}
@@ -863,6 +1116,126 @@ namespace CraftSynth.BuildingBlocks.Common
 			} while (offset >= 0);
 
 			return r;
+		}
+
+		/// <summary>
+		/// Finds consecvutive words and returns first next index after them.
+		///  Example: for text.IndexAfterWords(true, "charset",ExtenderClass.OPTIONAL_SPACES,"=",ExtenderClass.OPTIONAL_SPACES,"\"") it will find all these:
+		///  'charset = "' 
+		///  'charset    = "'
+		///  'charset="'
+		/// </summary>
+		/// <param name="caseSensitive">if set to <c>true</c> [case sensitive].</param>
+		/// <param name="words">The words. You can use ExtenderClass.OPTIONAL_SPACES and ExtenderClass.OPTIONAL_SPACES as special constants.</param>
+		/// <returns></returns>
+		public static int IndexAfterWords(this string text, bool caseSensitive, params string[] words)
+		{
+			int index = -1;
+			string origText = text;
+
+			if (text.IsNOTNullOrWhiteSpace() && text.Length >= words.Sum(w => w.Length))
+			{
+				//if (caseSensitive == false)
+				//{
+				//	text = text.ToLower();
+				//	for (int i = 0; i < words.Count(); i++)
+				//	{
+				//		words[i] = words[i].ToLower();
+				//	}
+				//}
+				StringComparison sc = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+				index = 0;
+				while (index != -1)
+				{
+					index = origText.IndexOf(words[0], index, sc);
+					if (index != -1)
+					{
+						index += words[0].Length;
+						text = origText.Substring(index);
+						if (words.Count() > 1)
+						{
+							int index2 = index;
+							for (int i = 1; i < words.Count(); i++)
+							{
+								if (text != null && index2 != -1)
+								{
+									switch (words[i])
+									{
+										case OPTIONAL_SPACES:
+											text = text.TrimSpacesAtStartAndAdvanceIndex(ref index2, false);
+											break;
+										case REQUIRED_SPACES:
+											text = text.TrimSpacesAtStartAndAdvanceIndex(ref index2, true);
+											break;
+										default:
+											text = text.TrimXAtStartAndAdvanceIndex(words[i], ref index2, true, caseSensitive);
+											break;
+									}
+								}
+							}
+
+							if (index2 != -1)
+							{//all words found
+								index = index2;
+								break;
+							}
+						}
+					}
+				}
+
+			}
+
+			return index;
+		}
+
+		public const string OPTIONAL_SPACES = "<({OS})>";
+		public const string REQUIRED_SPACES = "<({RS})>";
+
+		public static string TrimXAtStartAndAdvanceIndex(this string text, string X, ref int index, bool resetResultAndIndexIfNotFound, bool caseSensitive=true)
+		{
+			if (text != null)
+			{
+				StringComparison sc = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+				if (text.StartsWith(X, sc))
+				{
+					text = text.Substring(X.Length);
+					index += X.Length;
+				}
+				else
+				{
+					if (resetResultAndIndexIfNotFound)
+					{
+						text = null;
+						index = -1;
+					}
+				}
+			}
+
+			return text;
+		}
+
+		public static string TrimSpacesAtStartAndAdvanceIndex(this string text, ref int index, bool resetResultAndIndexIfNotFound)
+		{
+			if (text != null)
+			{
+				string textTrimmed = text.TrimStart(' ');
+				if (textTrimmed.Length == text.Length)
+				{
+					if (resetResultAndIndexIfNotFound)
+					{
+						text = null;
+						index = -1;
+					}
+				}
+				else
+				{
+					index += text.Length - textTrimmed.Length;
+					text = textTrimmed;
+				}
+			}
+
+			return text;
 		}
 
 		public static int OccurrencesCount(this string s, string keyword)
@@ -905,7 +1278,87 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 		}
 
-		public static string TrimNonDigitsAtEnd(this string s)
+		public static string RemoveFirstXChars(this string s, int x, string resultIfStringIsShorter = "")
+		{
+			if (s.Length < x)
+			{
+				return resultIfStringIsShorter;
+			}
+			else
+			{
+				return s.Substring(x);
+			}
+		}
+
+        public static string TrimStart(this string s, string stringToTrim, bool ignoreCasing = false, string nullCaseResult = null)
+        {
+            if (stringToTrim == null)
+            {
+                //leave unchanged
+            }
+            else
+            {
+                if (s == null)
+                {
+                    s = nullCaseResult;
+                }
+                else
+                {
+                    if (ignoreCasing)
+                    {
+                        if (s.ToLower().StartsWith(stringToTrim))
+                        {
+                            s = s.Substring(stringToTrim.Length);
+                        }
+                    }
+                    else
+                    {
+                        if (s.StartsWith(stringToTrim))
+                        {
+                            s = s.Substring(stringToTrim.Length);
+                        }
+                    }
+                }
+            }
+
+            return s;
+        }
+
+        public static string TrimEnd(this string s, string stringToTrim, bool ignoreCasing = false, string nullCaseResult = null)
+        {
+            if (stringToTrim == null)
+            {
+                //leave unchanged
+            }
+            else
+            {
+                if (s == null)
+                {
+                    s = nullCaseResult;
+                }
+                else
+                {
+                    if (ignoreCasing)
+                    {
+                        if (s.ToLower().EndsWith(stringToTrim))
+                        {
+                            s = s.Substring(0, s.Length - stringToTrim.Length);
+                        }
+                    }
+                    else
+                    {
+                        if (s.EndsWith(stringToTrim))
+                        {
+                            s = s.Substring(0, s.Length - stringToTrim.Length);
+                        }
+                    }
+                }
+            }
+
+            return s;
+        }
+
+        public static string TrimNonDigitsAtEnd(this string s)
 		{
 			while (s.Length > 0)
 			{
@@ -1254,15 +1707,15 @@ namespace CraftSynth.BuildingBlocks.Common
 		/// <returns></returns>
 		public static List<string> ParseCSV(this string nullableString)
 		{
-			return ParseCSV<string>(nullableString, new char[] { ',' }, new char[] { ' ' }, false, null, null);
+			return ParseCSV<string>(nullableString, new char[] { ',' }, new char[] { ' ' }, false, null, null, null);
 		}
 
 		public static List<string> ParseCSV(this string nullableString, char[] separator)
 		{
-			return ParseCSV<string>(nullableString, separator, new char[] { ' ' }, false, null, null);
+			return ParseCSV<string>(nullableString, separator, new char[] { ' ' }, false, null, null, null);
 		}
 		
-		public static List<T> ParseCSV<T>(this string nullableString, char[] separator, char[] trimChars, bool includeEmptyOrWhiteSpaceItems, List<T> nullCaseResult, List<T> errorCaseResult)
+		public static List<T> ParseCSV<T>(this string nullableString, char[] separator, char[] trimChars, bool includeEmptyOrWhiteSpaceItems, List<T> nullCaseResult, List<T> errorCaseResult, List<T> emptyStringCaseResult)
 		{
 			List<T> r = null;
 
@@ -1281,23 +1734,30 @@ namespace CraftSynth.BuildingBlocks.Common
 					}
 
 					string[] parts = nullableString.Split(separator, StringSplitOptions.None);
-					foreach (var part in parts)
+					if (parts.Length == 1 && parts[0] == string.Empty)
 					{
-						string p = part;
-						if (trimChars != null)
+						return emptyStringCaseResult;
+					}
+					else
+					{
+						foreach (var part in parts)
 						{
-							p = p.Trim(trimChars);
-						}
-
-						if (!p.IsNullOrWhiteSpace() || includeEmptyOrWhiteSpaceItems)
-						{
-							if (r == null)
+							string p = part;
+							if (trimChars != null)
 							{
-								r = new List<T>();
+								p = p.Trim(trimChars);
 							}
 
-							T pAsT = (T)Convert.ChangeType((object)p, typeof(T));
-							r.Add(pAsT);
+							if (!p.IsNullOrWhiteSpace() || includeEmptyOrWhiteSpaceItems)
+							{
+								if (r == null)
+								{
+									r = new List<T>();
+								}
+
+								T pAsT = (T)Convert.ChangeType((object)p, typeof(T));
+								r.Add(pAsT);
+							}
 						}
 					}
 				}
@@ -1401,6 +1861,36 @@ namespace CraftSynth.BuildingBlocks.Common
 				if (separator != null)
 				{
 					r = r.TrimEnd(separator.Value);
+				}
+			}
+
+			return r;
+		}
+
+		public static string ToSingleString(this IEnumerable<string> ss, string nullCaseResult = null, string zeroItemsCaseResult = "", string separator = null)
+		{
+			string r;
+
+			if (ss == null)
+			{
+				r = nullCaseResult;
+			}
+			else if (ss.Count() == 0)
+			{
+				r = zeroItemsCaseResult;
+			}
+			else
+			{
+				r = string.Empty;
+				int i = 0;
+				foreach (string s in ss)
+				{
+					r = r + s;
+					if (i+1<ss.Count())
+					{
+						r = r+separator ?? string.Empty;
+					}
+					i++;
 				}
 			}
 
@@ -1956,6 +2446,41 @@ namespace CraftSynth.BuildingBlocks.Common
 			pair = new KeyValuePair<string,string>(pair.Key, newValue);
 			return pair;
 		}
+
+		public static List<KeyValuePair<string, string>> RemoveDuplicates(this List<KeyValuePair<string, string>> list, bool compareByKey, bool compareByValue, bool caseSensitive = true)
+		{
+			List<KeyValuePair<string, string>> r = new List<KeyValuePair<string, string>>();
+			StringComparison sc = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+			foreach (KeyValuePair<string, string> kvp in list)
+			{
+				bool alreadyAdded = false;
+
+				if (compareByKey)
+				{
+					alreadyAdded = r.Exists(rkvp => string.Compare(rkvp.Key, kvp.Key, sc) == 0);
+				}
+				else if (compareByValue)
+				{
+					alreadyAdded = r.Exists(rkvp => string.Compare(rkvp.Value, kvp.Value, sc) == 0);
+				}
+				else if (compareByKey && compareByValue)
+				{
+					alreadyAdded = r.Exists(rkvp => string.Compare(rkvp.Key, kvp.Key, sc) == 0) && r.Exists(rkvp => string.Compare(rkvp.Value, kvp.Value, sc) == 0);
+				}
+				else
+				{
+					throw new Exception("Either compareByKey or compareByValue must be true or both can be true.");
+				}
+
+				if (!alreadyAdded)
+				{
+					r.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+				}
+			}
+
+			return r;
+		}
 		#endregion
 		
 		#region Byte array
@@ -1971,7 +2496,135 @@ namespace CraftSynth.BuildingBlocks.Common
 			r = sb.ToString().TrimEnd(',');
 			return r;
 		}
-		
+
+		public static byte[] FromCSVOfDecimals(this string csvOfDecimals)
+		{
+			List<byte> bytes = new List<byte>();
+
+			try
+			{
+				foreach (string d in csvOfDecimals.Split(new char[]{ ','}, StringSplitOptions.RemoveEmptyEntries))
+				{
+					bytes.Add(byte.Parse(d));
+				}
+			}
+			catch {
+				bytes = new List<byte>();
+			}
+
+			return bytes.ToArray();
+		}
+
+		/// <summary>
+		/// Source: http://www.pvladov.com/2012/07/arbitrary-to-decimal-numeral-system.html
+		/// </summary>
+		/// <param name="number">The arbitrary numeral system number to convert.</param>
+		/// <param name="baseA">The radix of the numeral system the given number
+		/// is in (in the range [2, 36]).</param>
+		/// <returns></returns>
+		public static long FromDifferentBase(string number, string allPossibleDigits)//"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		{
+			if (allPossibleDigits.Length < 2)
+			{
+				throw new ArgumentException("allPossibleDigits must contain at lease two digits.");
+			}
+
+			if (String.IsNullOrEmpty(number))
+			{
+				return 0;
+			}
+
+			// Make sure the arbitrary numeral system number is in upper case
+			number = number.ToUpperInvariant();
+
+			long result = 0;
+			long multiplier = 1;
+			for (int i = number.Length - 1; i >= 0; i--)
+			{
+				char c = number[i];
+				if (i == 0 && c == '-')
+				{
+					// This is the negative sign symbol
+					result = -result;
+					break;
+				}
+
+				int digit = allPossibleDigits.IndexOf(c);
+				if (digit == -1)
+				{
+					throw new ArgumentException("Invalid character in the arbitrary numeral system number", "number");
+				}
+
+				result += digit * multiplier;
+				multiplier *= allPossibleDigits.Length;
+			}
+
+			return result;
+		}
+
+		public static string ToDifferentBase(this int value, string allPossibleDigits)
+		{
+			int i = 32;
+			char[] buffer = new char[i];
+			int targetBase = allPossibleDigits.Length;
+
+			do
+			{
+				buffer[--i] = allPossibleDigits[value % targetBase];
+				value = value / targetBase;
+			}
+			while (value > 0);
+
+			char[] result = new char[32 - i];
+			Array.Copy(buffer, i, result, 0, 32 - i);
+
+			return new string(result);
+		}
+
+		public static string ToHex(this byte[] bytes)
+		{
+			StringBuilder r = new StringBuilder(bytes.Length * 2);
+			foreach (byte b in bytes)
+			{
+				r.AppendFormat("{0:x2}", b);
+			}
+			return r.ToString();
+		}
+
+		public static byte[] FromHex(this String hex)
+		{
+			int NumberChars = hex.Length;
+			byte[] bytes = new byte[NumberChars / 2];
+			for (int i = 0; i < NumberChars; i += 2)
+			{
+				bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+			}
+			return bytes;
+		}
+
+		public static string ToAlphaOnlyHex(this byte[] bytes)
+		{
+			string allChars = "0123456789ABCDEFGHIJKLMNOP";
+			string hex = ToHex(bytes);
+			StringBuilder alphaOnlyHex = new StringBuilder();
+			foreach (char c in hex.ToUpper())
+			{
+				alphaOnlyHex.Append(allChars[allChars.IndexOf(c) + 10]);
+			}
+			return alphaOnlyHex.ToString();
+		}
+
+		public static byte[] FromAlphaOnlyHex(this string alphaOnlyHex)
+		{
+			string allChars = "0123456789ABCDEFGHIJKLMNOP";
+			StringBuilder hex = new StringBuilder();
+			foreach (char c in alphaOnlyHex)
+			{
+				hex.Append(allChars[allChars.IndexOf(c) - 10]);
+			}
+			return FromHex(hex.ToString());
+		}
+
 		public static T ToStructure<T>(this byte[] bytes) where T : struct
 		{
 			GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
@@ -2091,6 +2744,109 @@ namespace CraftSynth.BuildingBlocks.Common
 			}
 			return -1;
 		}
-		#endregion
-	}
+        #endregion
+
+        #region Reflection
+        /// <summary>
+        /// Source: https://stackoverflow.com/questions/1196991/get-property-value-from-string-using-reflection-in-c-sharp
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="propName"></param>
+        /// <returns></returns>
+        public static T GetPropertyValue<T>(this object obj, string propName)
+        {
+            T r = (T)obj.GetType().GetProperty(propName).GetValue(obj, null);
+            return r;
+        }
+
+        /// <summary>
+        /// Extension for 'Object' that copies the properties to a destination object.
+        /// Source: https://stackoverflow.com/questions/930433/apply-properties-values-from-one-object-to-another-of-the-same-type-automaticall
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <param name="destination">The destination.</param>
+        public static void CopyPropertiesTo(this object source, object destination)
+        {
+            // If any this null throw an exception
+            if (source == null || destination == null)
+                throw new Exception("Source or/and Destination Objects are null");
+            // Getting the Types of the objects
+            Type typeDest = destination.GetType();
+            Type typeSrc = source.GetType();
+            // Collect all the valid properties to map
+            var results = from srcProp in typeSrc.GetProperties()
+                          let targetProperty = typeDest.GetProperty(srcProp.Name)
+                          where srcProp.CanRead
+                          && targetProperty != null
+                          && (targetProperty.GetSetMethod(true) != null && !targetProperty.GetSetMethod(true).IsPrivate)
+                          && (targetProperty.GetSetMethod().Attributes & MethodAttributes.Static) == 0
+                          && targetProperty.PropertyType.IsAssignableFrom(srcProp.PropertyType)
+                          select new { sourceProperty = srcProp, targetProperty = targetProperty };
+            //map the properties
+            foreach (var props in results)
+            {
+                props.targetProperty.SetValue(destination, props.sourceProperty.GetValue(source, null), null);
+            }
+        }
+
+        public static List<string> GetAllPropertiesNames(this object o)
+        {
+            List<string> r = o.GetType().GetProperties().Select(p=>p.Name).ToList();
+            return r;
+        }
+        #endregion
+
+        #region Lists
+        public static bool Contains(this List<string> list, string value, bool ignoreCase = false, bool compareTrimmedValues = false)
+        {
+            bool r = false;
+
+            if(value!=null)
+            {
+                if (ignoreCase)
+                {
+                    value = value.ToLower();
+                }
+                if (compareTrimmedValues)
+                {
+                    value = value.Trim();
+                }
+            }
+
+            foreach(string s in list)
+            {       
+                if(value==null && s == null)
+                {
+                    r = true;
+                    break;
+                }
+                else if(s==null)
+                {
+                    //skip to next
+                }
+                else
+                {
+                    string s1 = s;
+                    if(ignoreCase)
+                    {
+                        s1 = s1.ToLower();
+                    }
+                    if(compareTrimmedValues)
+                    {
+                        s1 = s1.Trim();
+                    }
+
+                    if(s1==value)
+                    {
+                        r = true;
+                        break;
+                    }
+                }
+            }
+
+            return r;
+        }
+        #endregion
+    }
 }

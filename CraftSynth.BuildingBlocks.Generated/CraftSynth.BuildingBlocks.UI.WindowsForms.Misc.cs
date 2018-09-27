@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -101,7 +102,32 @@ namespace CraftSynth.BuildingBlocks.UI.WindowsForms
 				}
 			}
 			return captionBarIntersectsAnyScreen;
-		}
+        }
 
-	}
+        /// <summary>
+        /// 
+        /// Usage example:
+        /// 
+        /// this.InvokeIfRequired(() =>
+        /// {
+        ///     
+        /// });
+        /// 
+        /// Source: https://stackoverflow.com/questions/2367718/automating-the-invokerequired-code-pattern
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="action"></param>
+        public static void InvokeIfRequired(this ISynchronizeInvoke control,  MethodInvoker action)
+        {
+            if (control.InvokeRequired)
+            {
+                var args = new object[0];
+                control.Invoke(action, args);
+            }
+            else
+            {
+                action();
+            }
+        }
+    }
 }
